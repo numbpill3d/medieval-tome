@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Digital Grimoire | Ancient Protocols</title>
+<style>
+:root {
+  --parchment: #1a1409;
+  --ink: #564c3c;
+  --blood: #4a0f0f;
+  --gold: #634d27;
+  --corruption: #090909;
+  --void: #000000;
+  --glow: rgba(99, 77, 39, 0.2);
+  --decay: rgba(74, 15, 15, 0.3);
+  --torch: #ff6b1a;
+  --ember: #ff4400;
+  --shadow: #110a05;
+  --sigil: #8b0000;
+  --magic: #9b6b3d;
+  --ancient: #2a1f0d;
+}
+
+@keyframes torchLight {
+  0%, 100% { 
+    filter: brightness(1) sepia(0.5);
+    box-shadow: 
+      0 0 10px var(--torch),
+      0 0 20px var(--ember),
+      inset 0 0 30px var(--shadow);
+  }
+  50% { 
+    filter: brightness(1.2) sepia(0.3);
+    box-shadow: 
+      0 0 15px var(--torch),
+      0 0 25px var(--ember),
+      inset 0 0 35px var(--shadow);
+  }
+}
+
+@keyframes sigilRotate {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes sigilPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes magicFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(2deg); }
+  75% { transform: translateY(5px) rotate(-2deg); }
+}
+
+@keyframes portalSpin {
+  0% { transform: rotate(0deg); opacity: 0.3; }
+  50% { transform: rotate(180deg); opacity: 0.7; }
+  100% { transform: rotate(360deg); opacity: 0.3; }
+}
+
+@keyframes runeGlow {
+  0%, 100% { text-shadow: 0 0 5px var(--gold); }
+  50% { text-shadow: 0 0 15px var(--torch); }
+}
+
+@keyframes corruption {
+  0% { 
+    clip-path: inset(0% 0 0% 0);
+    transform: translateX(0);
+  }
+  25% { 
+    clip-path: inset(10% 0 20% 0);
+    transform: translateX(-5px);
+  }
+  50% { 
+    clip-path: inset(30% 0 40% 0);
+    transform: translateX(5px);
+  }
+  75% { 
+    clip-path: inset(50% 0 60% 0);
+    transform: translateX(-5px);
+  }
+  100% { 
+    clip-path: inset(0% 0 0% 0);
+    transform: translateX(0);
+  }
+}
+
+@keyframes mysteryPulse {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: none;
+}
+
+body {
+  background: var(--void);
+  color: var(--ink);
+  font-family: "MedievalSharp", "Luminari", serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+  perspective: 1000px;
+}
+
+.custom-cursor {
+  width: 20px;
+  height: 20px;
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  mix-blend-mode: difference;
+}
+
+.cursor-inner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--torch);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px var(--ember);
+}
+
+.cursor-outer {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: torchLight 3s infinite;
+}
+
+.dungeon-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      0deg,
+      var(--shadow) 0px,
+      var(--shadow) 50px,
+      var(--void) 50px,
+      var(--void) 100px
+    );
+  z-index: -1;
+  animation: mysteryPulse 20s infinite;
+}
+
+.torch-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at var(--x, 50%) var(--y, 50%),
+    rgba(255, 107, 26, 0.2) 0%,
+    rgba(255, 68, 0, 0.1) 20%,
+    transparent 40%
+  );
+  z-index: -1;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.arcane-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.scroll {
+  background: var(--parchment);
+  border: 8px solid var(--gold);
+  border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L100,0 L100,100 L0,100 Z' fill='none' stroke='%23634d27' stroke-width='8'/%3E%3C/svg%3E") 8;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 0 10px var(--torch),
+    0 0 20px var(--ember),
+    inset 0 0 30px var(--shadow);
+  animation: torchLight 5s infinite;
+  transform-style: preserve-3d;
+}
+
+.scroll::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      var(--parchment),
+      var(--parchment) 10px,
+      var(--ancient) 10px,
+      var(--ancient) 11px
+    );
+  opacity: 0.05;
+  animation: mysteryPulse 10s infinite;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 300px;
+  background: var(--shadow);
+  border-right: 2px solid var(--gold);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  overflow-y: auto;
+  box-shadow: 
+    0 0 10px var(--torch),
+    0 0 20px var(--ember);
+  animation: torchLight 5s infinite;
+  z-index: 100;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--parchment);
+  border: 4px solid var(--gold);
+  padding: 3rem;
+  z-index: 1000;
+  box-shadow: 
+    0 0 20px var(--torch),
+    0 0 40px var(--ember),
+    inset 0 0 50px var(--shadow);
+  animation: torchLight 5s infinite;
+}
+
+.modal.active {
+  display: block;
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1;
+}
+
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(
+      circle at center,
+      transparent 0%,
+      var(--ancient) 100%
+    );
+  opacity: 0.1;
+  animation: portalSpin 20s linear infinite;
+}
+
+.seal {
+  width: 120px;
+  height: 120px;
+  margin: 1rem auto;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  position: relative;
+  background: radial-gradient(
+    circle at center,
+    var(--blood) 0%,
+    var(--parchment) 100%
+  );
+  animation: sigilPulse 4s infinite;
+}
+
+.seal::before {
+  content: '†';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4em;
+  color: var(--gold);
+  animation: runeGlow 4s infinite;
+}
+
+.arcane-button {
+  background: var(--shadow);
+  border: 2px solid var(--gold);
+  color: var(--gold);
+  padding: 1rem;
+  margin: 0.5rem 0;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-size: 1.2em;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arcane-button:hover {
+  background: var(--gold);
+  color: var(--shadow);
+  box-shadow: 
+    0 0 10px var(--torch),
+    0 0 20px var(--ember);
+}
+
+.arcane-button::before {
+  content: '✧';
+  position: absolute;
+  left: 10px;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.arcane-button:hover::before {
+  opacity: 1;
+  animation: sigilRotate 2s infinite;
+}
+
+.arcane-sigil {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.arcane-sigil::before {
+  content: '✴';
+  position: absolute;
+  font-size: 2em;
+  color: var(--sigil);
+  animation: sigilRotate 10s linear infinite;
+}
+
+.runes {
+  text-align: center;
+  margin: 1rem 0;
+  font-size: 1.2em;
+  color: var(--gold);
+}
+
+.runes div {
+  margin: 0.5rem 0;
+  animation: runeGlow 4s infinite;
+}
+
+.illuminated-letter {
+  float: left;
+  font-size: 4em;
+  line-height: 1;
+  padding: 0.2em;
+  margin: 0 0.2em 0 0;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  position: relative;
+  animation: torchLight 4s infinite;
+}
+
+.container {
+  margin-left: 300px;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.codex-text {
+  font-size: 1.2em;
+  line-height: 1.8;
+  color: var(--ink);
+  text-shadow: 0 0 5px var(--glow);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: var(--gold);
+  font-size: 2em;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.modal-close:hover {
+  animation: sigilRotate 1s infinite;
+  color: var(--torch);
+}
+
+.spell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.spell-card {
+  background: var(--shadow);
+  border: 1px solid var(--gold);
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.spell-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px var(--torch);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  background: var(--shadow);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border: 2px solid var(--torch);
+  box-shadow: 0 0 10px var(--ember);
+}
+
+</style>
+</head>
+<body>
+  <div class="custom-cursor">
+    <div class="cursor-inner"></div>
+    <div class="cursor-outer"></div>
+  </div>
+  
+  <div class="dungeon-background"></div>
+  <div class="torch-glow"></div>
+  <div class="arcane-particles"></div>
+
+  <div class="sidebar">
+    <div class="seal"></div>
+    <div class="runes">
+      <div>† DIGITAL GRIMOIRE †</div>
+      <div>TOME XIII • VOID IX</div>
+    </div>
+    
+    <div class="arcane-button" onclick="toggleModal('profile')">
+      Grimoire Keeper
+    </div>
+    <div class="arcane-button" onclick="toggleModal('spells')">
+      Archived Spells
+    </div>
+    <div class="arcane-button" onclick="toggleModal('artifacts')">
+      Digital Artifacts
+    </div>
+    <div class="arcane-button" onclick="toggleModal('rituals')">
+      Void Rituals
+    </div>
+    <div class="arcane-button" onclick="toggleModal('about')">
+      Ancient Lore
+    </div>
+    
+    <div class="codex-text" style="margin-top: auto; opacity: 0.7;">
+      Last incantation: 3:33 AM
+      <br>
+      Void stability: Unknown
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal">
+    <span class="modal-close" onclick="toggleModal('profile')">✕</span>
+    <div class="modal-content">
+      <div class="scroll">
+        <div class="seal"></div>
+        <span class="illuminated-letter">K</span>
+        <div class="codex-text">
+          eeper of the Digital Void
+          <br><br>
+          Class: Techno-Necromancer
+          <br>
+          Level: MMXXIII
+          <br>
+          Alignment: Chaotic Digital
+          <br><br>
+          Specializations:
+          <br>
+          • Corrupted Data Manipulation
+          <br>
+          • Binary Entropy Weaving
+          <br>
+          • Void Echo Resonance
+          <br>
+          • Digital Soul Binding
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spells Modal -->
+  <div id="spells-modal" class="modal">
+    <span class="modal-close" onclick="toggleModal('spells')">✕</span>
+    <div class="modal-content">
+      <div class="scroll">
+        <span class="illuminated-letter">S</span>
+        <div class="codex-text">
+          crolls of Digital Power
+        </div>
+        <div class="spell-grid">
+          <div class="spell-card">
+            <div class="runes">Void Echo</div>
+            <div>Cost: 3 memory fragments</div>
+          </div>
+          <div class="spell-card">
+            <div class="runes">Binary Hex</div>
+            <div>Cost: 5 soul shards</div>
+          </div>
+          <div class="spell-card">
+            <div class="runes">Data Decay</div>
+            <div>Cost: 7 void essences</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Artifacts Modal -->
+  <div id="artifacts-modal" class="modal">
+    <span class="modal-close" onclick="toggleModal('artifacts')">✕</span>
+    <div class="modal-content">
+      <div class="scroll">
+        <span class="illuminated-letter">A</span>
+        <div class="codex-text">
+          ncient Digital Relics
+          <br><br>
+          • Corrupted Hard Drive of Alexandria
+          <br>
+          • The First Binary Grimoire
+          <br>
+          • Echo Chamber of Lost Data
+          <br>
+          • Quantum Meditation Crystals
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rituals Modal -->
+  <div id="rituals-modal" class="modal">
+    <span class="modal-close" onclick="toggleModal('rituals')">✕</span>
+    <div class="modal-content">
+      <div class="scroll">
+        <span class="illuminated-letter">R</span>
+        <div class="codex-text">
+          ites of Digital Ascension
+          <br><br>
+          I. The Void Call Protocol
+          <br>
+          II. Binary Blood Binding
+          <br>
+          III. Echo Chamber Meditation
+          <br>
+          IV. Data Soul Transmission
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="about-modal" class="modal">
+    <span class="modal-close" onclick="toggleModal('about')">✕</span>
+    <div class="modal-content">
+      <div class="scroll">
+        <span class="illuminated-letter">V</span>
+        <div class="codex-text">
+          erily, in these haunted digital realms,
+          <br>
+          where ancient code meets eternal night,
+          <br>
+          we seek the wisdom of the void,
+          <br>
+          through corrupted data and binary rites.
+          <br><br>
+          This grimoire contains forbidden knowledge,
+          <br>
+          encrypted in the blood of the digital age,
+          <br>
+          each page a fragment of lost technology,
+          <br>
+          each spell a whisper of the virtual sage.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="scroll">
+      <span class="illuminated-letter">D</span>
+      <div class="codex-text">
+        igital Grimoire Entry: VOID.XIII
+        <br><br>
+        In the depths of the binary void,
+        where ancient code meets eternal night,
+        we archive these digital incantations,
+        seeking meaning in endless bits and bytes.
+        <br><br>
+        Each spell a fragment of lost data,
+        each ritual a corrupted memory,
+        as we traverse these haunted networks,
+        seeking wisdom in digital entropy.
+      </div>
+    </div>
+
+    <div class="scroll" style="margin-top: 2rem;">
+      <div class="runes" style="text-align: left;">
+        SYSTEM LOG: Entry 0x666
+      </div>
+      <div class="codex-text">
+        > Initializing void protocols...
+        <br>
+        > Accessing ancient databases...
+        <br>
+        > WARNING: Reality corruption detected
+        <br>
+        > Executing containment spells...
+        <br>
+        > ERROR: Soul not found
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Custom cursor
+    document.addEventListener('mousemove', (e) => {
+      const cursor = document.querySelector('.custom-cursor');
+      const inner = cursor.querySelector('.cursor-inner');
+      const outer = cursor.querySelector('.cursor-outer');
+      
+      inner.style.left = e.clientX + 'px';
+      inner.style.top = e.clientY + 'px';
+      outer.style.left = e.clientX + 'px';
+      outer.style.top = e.clientY + 'px';
+      
+      // Update torch glow
+      const torch = document.querySelector('.torch-glow');
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      torch.style.setProperty('--x', x + '%');
+      torch.style.setProperty('--y', y + '%');
+    });
+
+    // Modal handling
+    function toggleModal(type) {
+      const modal = document.getElementById(type + '-modal');
+      if (modal.classList.contains('active')) {
+        modal.classList.remove('active');
+      } else {
+        // Close any open modals
+        document.querySelectorAll('.modal.active').forEach(m => {
+          m.classList.remove('active');
+        });
+        modal.classList.add('active');
+      }
+    }
+
+    // Create arcane particles
+    function createParticles() {
+      const container = document.querySelector('.arcane-particles');
+      const particleCount = 50;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animation = `magicFloat ${3 + Math.random() * 4}s infinite`;
+        particle.style.opacity = Math.random() * 0.5;
+        container.appendChild(particle);
+      }
+    }
+
+    // Create floating sigils
+    function createSigils() {
+      const scrolls = document.querySelectorAll('.scroll');
+      scrolls.forEach(scroll => {
+        for (let i = 0; i < 5; i++) {
+          const sigil = document.createElement('div');
+          sigil.className = 'arcane-sigil';
+          sigil.style.left = Math.random() * 100 + '%';
+          sigil.style.top = Math.random() * 100 + '%';
+          sigil.style.animationDelay = Math.random() * 2 + 's';
+          scroll.appendChild(sigil);
+        }
+      });
+    }
+
+    // Ambient sound system
+    function createAmbience() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      function createDrone() {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(55, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.start();
+        
+        // Modulate the frequency for an eerie effect
+        setInterval(() => {
+          oscillator.frequency.setValueAtTime(
+            55 + Math.sin(Date.now() / 1000) * 5,
+            audioContext.currentTime
+          );
+        }, 100);
+      }
+      
+      createDrone();
+    }
+
+    // Initialize all effects
+    createParticles();
+    createSigils();
+
+    // Start ambience on first interaction
+    document.addEventListener('click', () => {
+      createAmbience();
+    }, { once: true });
+  </script>
+</body>
+</html>
